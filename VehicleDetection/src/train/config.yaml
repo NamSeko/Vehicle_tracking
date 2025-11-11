@@ -1,0 +1,14 @@
+data: src/train/trafics_data.yaml
+imgsz: 256
+epochs: 10
+hsv_h: 0.03
+hsv_s: 0.6
+hsv_v: 0.5
+degrees: 30
+translate: 0.1
+scale: 0.25
+shear: 10
+perspective: 0.0005
+fliplr: 0.5
+bgr: 0.5
+mosaic: 1
