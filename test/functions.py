@@ -1,6 +1,45 @@
 import cv2
 import numpy as np
 import os
+import re
+
+CONFUSIONS_TO_NUMBER = {
+    'B': '8',
+    'G': '6',
+    'Z': '2',
+    'S': '5',
+    'O': '0',
+    'I': '1',
+}
+
+CONFUSIONS_TO_LETTER = {
+    '8': 'B',
+    '6': 'G',
+    '9': 'B',
+    '2': 'Z',
+    '5': 'S',
+    '0': 'O',
+    '1': 'I',
+}
+
+def correct_char(char, must_be_letter=False):
+    if must_be_letter:
+        return CONFUSIONS_TO_LETTER.get(char, char)
+    else:
+        return CONFUSIONS_TO_NUMBER.get(char, char)
+
+def post_process_license_plate(raw_text):
+    clean_text = re.sub(r'[^A-Z0-9]', '', str(raw_text).upper())
+
+    corrected_chars = []
+    
+    template = "NNLNNNNNNN"
+
+    for i, char in enumerate(clean_text):
+        must_be_letter = (template[i] == 'L')
+        corrected_chars.append(correct_char(char, must_be_letter))
+
+    return "".join(corrected_chars)
 
 def gen_mask(point_path, image_path, scale):
     image = cv2.imread(image_path)
