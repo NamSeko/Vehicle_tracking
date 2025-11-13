@@ -5,3 +5,4 @@ __pycache__
 # Model 
 weights
 *.pt
+*.zip
