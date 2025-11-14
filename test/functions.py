@@ -10,6 +10,10 @@ CONFUSIONS_TO_NUMBER = {
     'S': '5',
     'O': '0',
     'I': '1',
+    'D': '0',
+    'A': '4',
+    'C': '0',
+    'L': '4'
 }
 
 CONFUSIONS_TO_LETTER = {
@@ -18,7 +22,7 @@ CONFUSIONS_TO_LETTER = {
     '9': 'B',
     '2': 'Z',
     '5': 'S',
-    '0': 'O',
+    '0': 'B',
     '1': 'I',
 }
 
@@ -28,18 +32,36 @@ def correct_char(char, must_be_letter=False):
     else:
         return CONFUSIONS_TO_NUMBER.get(char, char)
 
-def post_process_license_plate(raw_text):
+def post_process_license_plate(raw_text, cls):
     clean_text = re.sub(r'[^A-Z0-9]', '', str(raw_text).upper())
+    if len(clean_text) <= 7:
+        return "OCR ERROR" 
 
     corrected_chars = []
     
-    template = "NNLNNNNNNN"
+    if len(clean_text) == 9:
+        if cls == 0:
+            template = "NNLLNNNNNNNN"
+        elif cls == 1:
+            template = "NNLNNNNNNNN" 
+    else:
+        template = "NNLNNNNNNNN"
 
     for i, char in enumerate(clean_text):
         must_be_letter = (template[i] == 'L')
         corrected_chars.append(correct_char(char, must_be_letter))
 
     return "".join(corrected_chars)
+
+def process_img(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(2,2))
+    enh = clahe.apply(img)
+    blur = cv2.GaussianBlur(enh, (0,0), 3)
+    sharp = cv2.addWeighted(enh, 1.5, blur, -0.5, 0)
+    lap = cv2.Laplacian(sharp, cv2.CV_8U, ksize=3)
+    final = cv2.addWeighted(sharp, 1, lap, -0.4, 0)
+    return final
 
 def gen_mask(point_path, image_path, scale):
     image = cv2.imread(image_path)
